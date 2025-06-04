@@ -2,9 +2,14 @@ const express = require('express');
 require('dotenv').config();
 const app = express();
 const connectDB = require('./config/database');
+const GoldCoinUpdateJob = require('./job/updateBalanceCron');
+const goldCoinJob = new GoldCoinUpdateJob();
 
 // Connect to MongoDB
 connectDB();
+
+//job
+goldCoinJob.start();
 
 const cors = require('cors');
 app.use(cors());
@@ -16,6 +21,7 @@ const userDataRoutes = require('./routes/userdata');
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/userdata', userDataRoutes);
+
 
 app.get('/', (req, res) => {
     res.send('Hello World');
