@@ -1,25 +1,27 @@
 const { User } = require('../models/miniApp');
 
-exports.getUserData = async (req,res) => {
+exports.updateOnTap = async (req,res) => {
+    const {userId} = req.params;
     try {
-        const {userId} = req.params;
         const user = await User.findOne({userId});
         if(!user) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
-        }   
-        const result =res.status(200).json({      
+        }
+        const updatebalance = user.goldCoins + user.tapAmount;
+        user.goldCoins = updatebalance;
+        await user.save();
+        res.status(200).json({
             success: true,
-            user
+            message: 'Balance updated successfully',
+            balance: updatebalance
         });
-
-        console.log(result);
     } catch (error) {
         res.status(500).json({
             success: false,
             message: 'Internal server error'
-        });
+        }); 
     }
 }
