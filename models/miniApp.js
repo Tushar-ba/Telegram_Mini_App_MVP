@@ -25,6 +25,7 @@ const DailyRewardSchema = new mongoose.Schema({
 
 const UserSchema = new mongoose.Schema({
   userId: { type: String, unique: true, required: true }, // Telegram ID as primary key
+  avatar: { type: String, default: 'https://i.ibb.co/1900x1900/1.png', unique: true, required: true },
   walletAddress: String, // TON wallet address
   signupTime: { type: Date, default: Date.now },
   lastClaimTime: Date, // For AFK mining
