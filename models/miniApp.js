@@ -38,8 +38,10 @@ const UserSchema = new mongoose.Schema({
   energy: { type: Number, default: 100 }, // For tap/shake
   miningRate: { type: Number, default: 10000 }, // Gold Coins per hour
   tapAmount: { type: Number, default: 10 }, // Gold Coins per tap
+  afkMiningActive: { type: Boolean, default: false },
   boosters: [BoosterSchema], // All user boosters (up to 12: 4 rides, 4 digs, 4 shops)
   dailyRewards: [DailyRewardSchema],
+  nextRewardUnlockTime: Date,
   tasks: [TaskSchema],
   membership: { type: String, default: 'none', enum: ['none', 'gold', 'platinum'] },
   wheelSpins: { type: Number, default: 0 }, // Available spins
