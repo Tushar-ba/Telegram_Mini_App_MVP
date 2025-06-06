@@ -9,7 +9,7 @@ const starPurchaseRoutes = require('./routes/starPurchase');
 connectDB();
 
 //job
-//goldCoinJob.start();
+goldCoinJob.start();
 
 const cors = require('cors');
 app.use(cors());
@@ -18,10 +18,12 @@ app.use(express.json());
 // Import routes
 const authRoutes = require('./routes/auth');
 const userDataRoutes = require('./routes/userdata');
+const dailyRewardsRoutes = require('./routes/dailyRewards');
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/userdata', userDataRoutes);
 app.use('/api/starPurchase', starPurchaseRoutes);
+app.use('/api/dailyRewards', dailyRewardsRoutes);
 
 app.get('/', (req, res) => {
     res.send('Hello World');

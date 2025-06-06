@@ -138,6 +138,125 @@ https://wgxcjz8x-3000.inc1.devtunnels.ms
 
 ---
 
+### 🎁 3. Daily Rewards Routes
+
+### 📘 A. Get Daily Rewards Status
+
+- **Endpoint:**
+    
+    `GET https://wgxcjz8x-3000.inc1.devtunnels.ms/api/dailyRewards/123456789`
+    
+- **Headers:**
+    
+    ```json
+    {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer YOUR_JWT_TOKEN"
+    }
+    
+    ```
+    
+- ✅ **Success Response:**
+    
+    ```json
+    {
+      "success": true,
+      "data": {
+        "dailyRewards": [
+          {
+            "rewardId": "day1",
+            "day": 1,
+            "reward": { "type": "goldCoins", "amount": 1000 },
+            "claimed": true,
+            "claimedAt": "2024-01-15T10:30:00.000Z"
+          },
+          {
+            "rewardId": "day2",
+            "day": 2,
+            "reward": { "type": "goldCoins", "amount": 2000 },
+            "claimed": false
+          }
+        ],
+        "claimableDays": [2, 3],
+        "currentStreak": 1,
+        "daysSinceLastLogin": 2,
+        "allClaimed": false,
+        "nextResetTime": null
+      }
+    }
+    
+    ```
+    
+
+### 📘 B. Claim Daily Reward
+
+- **Endpoint:**
+    
+    `POST https://wgxcjz8x-3000.inc1.devtunnels.ms/api/dailyRewards/claim`
+    
+- **Headers:**
+    
+    ```json
+    {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer YOUR_JWT_TOKEN"
+    }
+    
+    ```
+    
+- **Body:**
+    
+    ```json
+    {
+      "userId": "123456789",
+      "day": 2
+    }
+    
+    ```
+    
+- ✅ **Success Response:**
+    
+    ```json
+    {
+      "success": true,
+      "message": "Successfully claimed Day 2 reward: 2000 goldCoins!",
+      "data": {
+        "claimedReward": {
+          "day": 2,
+          "type": "goldCoins",
+          "amount": 2000
+        },
+        "updatedBalance": {
+          "goldCoins": 12000,
+          "stars": 107
+        },
+        "currentStreak": 2,
+        "allClaimed": false
+      }
+    }
+    
+    ```
+    
+- ❌ **Error Responses:**
+    
+    ```json
+    {
+      "success": false,
+      "message": "This reward has already been claimed"
+    }
+    
+    ```
+    
+    ```json
+    {
+      "success": false,
+      "message": "Cannot claim future rewards. You can only claim rewards for days since your last login."
+    }
+    
+    ```
+
+---
+
 ## 🔑 Authentication
 
 Add this header for protected routes:
@@ -210,6 +329,14 @@ Use:
 2. 📊 **Fetch User Data:**
     
     `GET {{base_url}}/api/userdata/:userId`
+    
+3. 🎁 **Get Daily Rewards:**
+    
+    `GET {{base_url}}/api/dailyRewards/:userId`
+    
+4. 🏆 **Claim Daily Reward:**
+    
+    `POST {{base_url}}/api/dailyRewards/claim`
     
 
 ---
