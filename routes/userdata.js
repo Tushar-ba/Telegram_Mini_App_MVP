@@ -5,10 +5,12 @@ const { authenticateToken } = require('../middleware/auth');
 const { updateOnTap } = require('../controllers/updateOnTap');
 const { getAfkEarnings, claimAfk } = require('../controllers/afkClaimer');
 const { specialOffer } = require('../controllers/specialOffer');
-const {purchaseSpecialOffer} = require ("../controllers/PurchaseSpecialOffer")
+const {purchaseSpecialOffer} = require ("../controllers/PurchaseSpecialOffer");
+const { getUserWithoutAuth } = require('../controllers/getUser');
 
 
 router.get('/:userId', authenticateToken, getUserData);
+router.get('/checkUser/:userId', authenticateToken, getUserWithoutAuth);
 router.put('/updateOnTap/:userId',authenticateToken, updateOnTap);
 router.get('/getAfkEarnings/:userId', authenticateToken, getAfkEarnings);
 router.put('/claimAfk', authenticateToken, claimAfk);
