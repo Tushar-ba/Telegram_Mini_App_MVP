@@ -10,7 +10,7 @@ const { getUserWithoutAuth } = require('../controllers/getUser');
 
 
 router.get('/:userId', authenticateToken, getUserData);
-router.get('/checkUser/:userId', authenticateToken, getUserWithoutAuth);
+router.get('/checkUser/:userId', getUserWithoutAuth);
 router.put('/updateOnTap/:userId',authenticateToken, updateOnTap);
 router.get('/getAfkEarnings/:userId', authenticateToken, getAfkEarnings);
 router.put('/claimAfk', authenticateToken, claimAfk);
