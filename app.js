@@ -4,7 +4,7 @@ const app = express();
 const connectDB = require('./config/database');
 const GoldCoinUpdateJob = require('./job/updateBalanceCron');
 const goldCoinJob = new GoldCoinUpdateJob();
-
+const starPurchaseRoutes = require('./routes/starPurchase');
 // Connect to MongoDB
 connectDB();
 
@@ -18,10 +18,12 @@ app.use(express.json());
 // Import routes
 const authRoutes = require('./routes/auth');
 const userDataRoutes = require('./routes/userdata');
+const dailyRewardsRoutes = require('./routes/dailyRewards');
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/userdata', userDataRoutes);
-
+app.use('/api/starPurchase', starPurchaseRoutes);
+app.use('/api/dailyRewards', dailyRewardsRoutes);
 
 app.get('/', (req, res) => {
     res.send('Hello World');
