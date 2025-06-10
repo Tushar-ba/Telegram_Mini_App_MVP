@@ -54,7 +54,4 @@ class GoldCoinUpdateJob {
   }
 }
 
-const goldCoinJob = new GoldCoinUpdateJob();
-goldCoinJob.start();
-
 module.exports = GoldCoinUpdateJob;

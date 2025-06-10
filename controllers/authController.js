@@ -4,7 +4,7 @@ const { User } = require('../models/miniApp');
 // Login or Register user based on Telegram userId
 exports.login = async (req, res) => {
   try {
-    const { userId, walletAddress } = req.body;
+    const { userId, walletAddress, avatar } = req.body;
 
     if (!userId) {
       return res.status(400).json({
@@ -21,6 +21,7 @@ exports.login = async (req, res) => {
       user = new User({
         userId,
         walletAddress: walletAddress || '',
+        avatar: avatar || 'https://images.lifestyleasia.com/wp-content/uploads/sites/2/2022/01/14164044/mutant-975x1024-1.jpeg',
         signupTime: new Date()
       });
       await user.save();
@@ -55,7 +56,8 @@ exports.login = async (req, res) => {
           stars: user.stars,
           apraTokens: user.apraTokens,
           level: user.level,
-          energy: user.energy
+          energy: user.energy,
+          avatar: user.avatar
         }
       }
     });

@@ -1,5 +1,61 @@
 const { User, Transaction } = require('../models/miniApp'); // Assumes models from schema artifact
 
+const getAfkEarnings = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findOne({ userId });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Check if AFK mining is active
+    if (!user.afkMiningActive) {
+      return res.status(200).json({ 
+        canClaim: false,
+        earnings: 0,
+        message: 'AFK mining is disabled',
+        timeSinceLastLogin: 0
+      });
+    }
+
+    // Check time since last login
+    const now = Date.now();
+    const timeSinceLastLogin = (now - user.lastLogin) / 3600000; // Hours
+    
+    if (timeSinceLastLogin > 3) {
+      return res.status(200).json({ 
+        canClaim: false,
+        earnings: 0,
+        message: 'Cannot claim: last login more than 3 hours ago',
+        timeSinceLastLogin: timeSinceLastLogin.toFixed(2)
+      });
+    }
+
+    // Calculate potential AFK earnings based on miningRate
+    const earnings = Math.floor(timeSinceLastLogin * user.miningRate);
+    
+    if (earnings <= 0) {
+      return res.status(200).json({ 
+        canClaim: false,
+        earnings: 0,
+        message: 'No AFK earnings available yet',
+        timeSinceLastLogin: timeSinceLastLogin.toFixed(2)
+      });
+    }
+
+    res.json({
+      canClaim: true,
+      earnings,
+      timeSinceLastLogin: timeSinceLastLogin.toFixed(2),
+      miningRate: user.miningRate,
+      message: `You can claim ${earnings} Gold Coins from AFK mining`,
+      currentGoldCoins: user.goldCoins
+    });
+  } catch (error) {
+    console.error('Error in getAfkEarnings:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 const claimAfk = async (req, res) => {
   const { userId } = req.body;
 
@@ -53,4 +109,4 @@ const claimAfk = async (req, res) => {
   }
 };
 
-module.exports = { claimAfk };
+module.exports = { getAfkEarnings, claimAfk };
