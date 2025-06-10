@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 const BoosterSchema = new mongoose.Schema({
   id: { type: String, required: true }, // e.g., "ride1", "dig2", "shop3"
   type: { type: String, required: true, enum: ['ride', 'dig', 'shop'] }, // Booster category
-  level: { type: Number, default: 1, min: 1, max: 5 }, // Levels 1 to 5
+  level: { type: Number, default: 1, min: 1, max: 4 }, // Levels 1 to 5
   boostRate: { type: Number, required: true }, // Boost rate (e.g., 1.2 for ride1 at level 1)
   cost: { type: Number, required: true }, // Gold Coins for next upgrade
+  cooldown: { type: Number, required: true }, // Cooldown time in seconds
 });
 
 const TaskSchema = new mongoose.Schema({
@@ -21,6 +22,12 @@ const DailyRewardSchema = new mongoose.Schema({
   reward: { type: { type: String, required: true }, amount: { type: Number, required: true } }, // e.g., { type: "stars", amount: 10 }
   claimed: { type: Boolean, default: false },
   claimedAt: Date,
+});
+
+const MembershipSchema = new mongoose.Schema({
+  type: { type: String, default: 'gold', enum: ['gold', 'platinum'] }, // Membership type
+  miningRate: { type: Number, required: true }, // Hourly profit from miningRate
+  cooldown: { type: Number, default: 0 }, // Cooldown time in seconds
 });
 
 const UserSchema = new mongoose.Schema({
@@ -44,7 +51,7 @@ const UserSchema = new mongoose.Schema({
   dailyRewards: [DailyRewardSchema],
   nextRewardUnlockTime: Date,
   tasks: [TaskSchema],
-  membership: { type: String, default: 'none', enum: ['none', 'gold', 'platinum'] },
+  membership: { type: String, default: 'gold', enum: ['gold', 'platinum'] },
   wheelSpins: { type: Number, default: 0 }, // Available spins
   specialOfferClaimed: { type: Boolean, default: false },
 });

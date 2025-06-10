@@ -30,21 +30,12 @@ const getDailyRewards = async (req, res) => {
       await user.save();
     }
 
-    // Calculate which days are claimable based on lastLogin
+    // Calculate days since signup (using minutes for testing)
     const now = new Date();
-    const lastLogin = user.lastLogin ? new Date(user.lastLogin) : user.signupTime;
-    const daysSinceLastLogin = Math.floor((now - lastLogin) / (1000 * 60 * 60 * 24));
+    const signupTime = new Date(user.signupTime);
+    const minutesSinceSignup = Math.floor((now - signupTime) / (1000 * 60));
     
-    // Determine claimable days (user can claim missed days + current day)
-    const claimableDays = [];
-    for (let i = 1; i <= Math.min(7, daysSinceLastLogin + 1); i++) {
-      const reward = user.dailyRewards.find(r => r.day === i);
-      if (reward && !reward.claimed) {
-        claimableDays.push(i);
-      }
-    }
-
-    // Calculate current streak (consecutive claimed days)
+    // Calculate current streak (consecutive claimed days from day 1)
     let currentStreak = 0;
     for (let i = 1; i <= 7; i++) {
       const reward = user.dailyRewards.find(r => r.day === i);
@@ -52,6 +43,19 @@ const getDailyRewards = async (req, res) => {
         currentStreak = i;
       } else {
         break;
+      }
+    }
+
+    // Determine claimable days: days that are unlocked but not claimed
+    const claimableDays = [];
+    
+    // Day X can be claimed if: minutesSinceSignup >= (X-1) AND not already claimed
+    for (let day = 1; day <= 7; day++) {
+      const reward = user.dailyRewards.find(r => r.day === day);
+      const isUnlocked = minutesSinceSignup >= (day - 1); // Day 1 = 0 mins, Day 2 = 1 min, etc.
+      
+      if (reward && !reward.claimed && isUnlocked) {
+        claimableDays.push(day);
       }
     }
 
@@ -64,7 +68,7 @@ const getDailyRewards = async (req, res) => {
         dailyRewards: user.dailyRewards,
         claimableDays,
         currentStreak,
-        daysSinceLastLogin,
+        minutesSinceSignup,
         allClaimed,
         nextResetTime: allClaimed ? new Date(now.getTime() + 24 * 60 * 60 * 1000) : null
       }

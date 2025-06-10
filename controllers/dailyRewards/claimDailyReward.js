@@ -67,52 +67,87 @@ const claimDailyReward = async (req, res) => {
       });
     }
 
-    // Check if user can claim this day based on lastLogin
+    // Check if user can claim this day based on signup time
     const now = new Date();
-    const lastLogin = user.lastLogin ? new Date(user.lastLogin) : user.signupTime;
-    const daysSinceLastLogin = Math.floor((now - lastLogin) / (1000 * 60 * 60 * 24));
+    const signupTime = new Date(user.signupTime);
+    const minutesSinceSignup = Math.floor((now - signupTime) / (1000 * 60));
     
-    // User can only claim rewards up to (daysSinceLastLogin + 1) days
-    if (dayNumber > daysSinceLastLogin + 1) {
+    // Day X can be claimed if: minutesSinceSignup >= (X-1)
+    // Day 1 = 0 mins, Day 2 = 1 min, Day 3 = 2 mins, etc.
+    const requiredMinutes = dayNumber - 1;
+    
+    if (minutesSinceSignup < requiredMinutes) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot claim future rewards. You can only claim rewards for days since your last login.'
+        message: `Day ${dayNumber} is not unlocked yet. Wait ${requiredMinutes - minutesSinceSignup} more minute(s).`
       });
     }
 
     // Check if user has claimed previous consecutive days (optional strict mode)
     // For now, we'll allow claiming any available day
     
-    // Apply the reward
-    if (reward.reward.type === 'goldCoins') {
-      user.goldCoins += reward.reward.amount;
-      user.totalGoldEarned += reward.reward.amount;
-    } else if (reward.reward.type === 'stars') {
-      user.stars += reward.reward.amount;
+    // Find all days from 1 to dayNumber that need to be claimed (catch-up mechanism)
+    const daysToClaim = [];
+    let totalRewards = {
+      goldCoins: 0,
+      stars: 0
+    };
+    
+    for (let i = 1; i <= dayNumber; i++) {
+      const rewardIndex = user.dailyRewards.findIndex(r => r.day === i);
+      if (rewardIndex !== -1 && !user.dailyRewards[rewardIndex].claimed) {
+        const dayReward = user.dailyRewards[rewardIndex];
+        daysToClaim.push({
+          day: i,
+          rewardIndex: rewardIndex,
+          reward: dayReward.reward
+        });
+        
+        // Calculate total rewards
+        if (dayReward.reward.type === 'goldCoins') {
+          totalRewards.goldCoins += dayReward.reward.amount;
+        } else if (dayReward.reward.type === 'stars') {
+          totalRewards.stars += dayReward.reward.amount;
+        }
+      }
     }
+    
+    // If no days to claim, user has already claimed everything up to this day
+    if (daysToClaim.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: `All rewards up to Day ${dayNumber} have already been claimed`
+      });
+    }
+    
+    // Apply all the rewards
+    user.goldCoins += totalRewards.goldCoins;
+    user.totalGoldEarned += totalRewards.goldCoins;
+    user.stars += totalRewards.stars;
 
-    // Mark reward as claimed
-    user.dailyRewards[rewardIndex].claimed = true;
-    user.dailyRewards[rewardIndex].claimedAt = now;
-
-    // Update last login to current time
-    user.lastLogin = now;
+    // Mark all days as claimed
+    const claimedDays = [];
+    for (const dayInfo of daysToClaim) {
+      user.dailyRewards[dayInfo.rewardIndex].claimed = true;
+      user.dailyRewards[dayInfo.rewardIndex].claimedAt = now;
+      claimedDays.push(dayInfo.day);
+      
+      // Log transaction for each day
+      await new Transaction({
+        userId: user.userId,
+        type: 'dailyReward',
+        amount: dayInfo.reward.amount,
+        details: { 
+          day: dayInfo.day, 
+          rewardType: dayInfo.reward.type,
+          rewardId: `day${dayInfo.day}`
+        },
+        timestamp: now
+      }).save();
+    }
 
     // Save user
     await user.save();
-
-    // Log transaction
-    await new Transaction({
-      userId: user.userId,
-      type: 'dailyReward',
-      amount: reward.reward.amount,
-      details: { 
-        day: dayNumber, 
-        rewardType: reward.reward.type,
-        rewardId: reward.rewardId 
-      },
-      timestamp: now
-    }).save();
 
     // Check if all rewards are claimed for bonus message
     const allClaimed = user.dailyRewards.every(r => r.claimed);
@@ -132,15 +167,26 @@ const claimDailyReward = async (req, res) => {
       }
     }
 
+    // Create descriptive message
+    let rewardMessage = '';
+    if (totalRewards.goldCoins > 0 && totalRewards.stars > 0) {
+      rewardMessage = `${totalRewards.goldCoins} gold coins and ${totalRewards.stars} stars`;
+    } else if (totalRewards.goldCoins > 0) {
+      rewardMessage = `${totalRewards.goldCoins} gold coins`;
+    } else if (totalRewards.stars > 0) {
+      rewardMessage = `${totalRewards.stars} stars`;
+    }
+    
+    const daysClaimedText = claimedDays.length === 1 
+      ? `Day ${claimedDays[0]}` 
+      : `Days ${claimedDays.join(', ')}`;
+
     return res.status(200).json({
       success: true,
-      message: `Successfully claimed Day ${dayNumber} reward: ${reward.reward.amount} ${reward.reward.type}!${bonusMessage}`,
+      message: `Successfully claimed ${daysClaimedText} rewards: ${rewardMessage}!${bonusMessage}`,
       data: {
-        claimedReward: {
-          day: dayNumber,
-          type: reward.reward.type,
-          amount: reward.reward.amount
-        },
+        claimedDays: claimedDays,
+        totalRewards: totalRewards,
         updatedBalance: {
           goldCoins: user.goldCoins,
           stars: user.stars

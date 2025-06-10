@@ -21,7 +21,7 @@ exports.login = async (req, res) => {
       user = new User({
         userId,
         walletAddress: walletAddress || '',
-        avatar: avatar || 'https://i.ibb.co/1900x1900/1.png',
+        avatar: avatar || 'https://images.lifestyleasia.com/wp-content/uploads/sites/2/2022/01/14164044/mutant-975x1024-1.jpeg',
         signupTime: new Date()
       });
       await user.save();
