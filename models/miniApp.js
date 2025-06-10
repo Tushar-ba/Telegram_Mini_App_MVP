@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const BoosterSchema = new mongoose.Schema({
   id: { type: String, required: true }, // e.g., "ride1", "dig2", "shop3"
   type: { type: String, required: true, enum: ['ride', 'dig', 'shop'] }, // Booster category
-  level: { type: Number, default: 1, min: 1, max: 5 }, // Levels 1 to 5
+  level: { type: Number, default: 1, min: 1, max: 4 }, // Levels 1 to 5
   boostRate: { type: Number, required: true }, // Boost rate (e.g., 1.2 for ride1 at level 1)
   cost: { type: Number, required: true }, // Gold Coins for next upgrade
-  cooldown: { type: Number, default: 6 }, // Cooldown time in seconds
+  cooldown: { type: Number, required: true }, // Cooldown time in seconds
 });
 
 const TaskSchema = new mongoose.Schema({
